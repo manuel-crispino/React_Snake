@@ -1,8 +1,16 @@
 import React from "react";
 type Axis = "x" | "y";
+
 interface Position {
 x : number;
 y : number;
+}
+
+const Limits = { 
+top:20,
+bottom:925,
+right:1496,
+left:15 
 }
 
 const Home = ()=>{
@@ -11,15 +19,13 @@ const Home = ()=>{
     const [apple,setApple] = React.useState<Position>({x:0, y:0});
     const appleRef = React.useRef<HTMLDivElement>(null);
     const [isStarted,setIsStarted] = React.useState(false);
+    const randomX = Math.random() * (Limits.right - Limits.left) + Limits.left;
+    const randomY = Math.random() * (Limits.bottom - Limits.top) + Limits.top;
+
 
     const startGame =() => {
-          const newApple = { x: 900, y: 400 };
+          const newApple = { x: randomX, y: randomY };
     setApple(newApple);
-
-    if (appleRef.current != null) {
-        appleRef.current.style.left = newApple.x + "px";
-        appleRef.current.style.top = newApple.y + "px";
-    }
     setIsStarted(true);
     }
 
@@ -27,8 +33,11 @@ const Home = ()=>{
  setSnake(prev => ({ ...prev, [axis]: prev[axis] + delta }));
 };
 
-    if (snake.y === apple.y &&  snake.x === apple.x)
+    React.useEffect(()=>{
+        if (snake.y === apple.y &&  snake.x === apple.x)
+    { 
         console.log("snake ate apple");
+    }},[snake.y, apple.y, snake.x, apple.x])
 
    
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,8 +68,9 @@ React.useEffect(() => {
         position: "absolute",
         left: snake.x + "px",
         top: snake.y + "px",
-        width: "20px",
+        width: snake.width + "px",
         height: "20px",
+        zIndex: 0,
         backgroundColor: "green",
     }}>
         </div>
@@ -71,8 +81,19 @@ React.useEffect(() => {
         top: apple.y + "px",
         width: "20px",
         height: "20px",
+        zIndex: -1,
         backgroundColor: "red",
     }}>
+        </div>
+        <div style={{
+     position: "absolute",
+    top: Limits.top + "px",
+    left: Limits.left + "px",
+    width: Limits.right - Limits.left + "px",
+    height: Limits.bottom - Limits.top + "px",
+    border: "2px solid yellow",
+    boxSizing: "border-box"
+        }}>
         </div>
         </div>
         }
