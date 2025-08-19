@@ -67,24 +67,23 @@ button:focus-visible {
   }
 }
 
-#box{
-
-  background-color: white;
+#snake{
+  background-color: green;
   position: absolute;
   width: 25px;
   height: 25px;
   top : 400px;
   left: 700px;
+  transition: transform 0.1s linear;
 }
 
 #apple{
-
   background-color: red;
   position: absolute;
   width: 25px;
   height: 25px;
   top : 400px;
-  left: 700px;
+  left: 900px;
 }
 
 #lines{
@@ -92,5 +91,11 @@ margin: 1%;
 width: 1480px;
 height: 900px;
 border: 1px,solid, white;
+}
+
+.start-btn{
+  position: absolute;
+  top : 400px;
+  left: 700px;
 }
 

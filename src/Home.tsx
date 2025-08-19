@@ -1,57 +1,81 @@
 import React from "react";
+type Axis = "x" | "y";
+interface Position {
+x : number;
+y : number;
+}
+
 const Home = ()=>{
-    const box = React.useRef<HTMLDivElement>(null);
-    const posX = React.useRef(700);
-    const posY = React.useRef(400);
-    const apple = React.useRef<HTMLDivElement>(null);
+    const snakeRef = React.useRef<HTMLDivElement>(null);
+    const [snake,setSnake] = React.useState<Position>({x:700, y:400});
+    const [apple,setApple] = React.useState<Position>({x:0, y:0});
+    const appleRef = React.useRef<HTMLDivElement>(null);
+    const [isStarted,setIsStarted] = React.useState(false);
 
-    const moveRight = () =>{
-        posX.current += 5;
-        if (box.current != null )
-            box.current.style.left = posX.current + "px";    
-        if (posX.current < 1460)
-            moveRight();
+    const startGame =() => {
+          const newApple = { x: 900, y: 400 };
+    setApple(newApple);
+
+    if (appleRef.current != null) {
+        appleRef.current.style.left = newApple.x + "px";
+        appleRef.current.style.top = newApple.y + "px";
+    }
+    setIsStarted(true);
     }
 
-    const moveLeft= () =>{
-        posX.current -= 5;
-        if (box.current != null )
-            box.current.style.left = posX.current + "px";    
-    }
+ const moveSnake = (axis: Axis, delta: number) => {
+ setSnake(prev => ({ ...prev, [axis]: prev[axis] + delta }));
+};
 
-    const moveDown= () =>{
-        posY.current += 5;
-        if (box.current != null )
-            box.current.style.top = posY.current + "px";    
-    }
+    if (snake.y === apple.y &&  snake.x === apple.x)
+        console.log("snake ate apple");
 
-    const moveTop= () =>{
-        posY.current -= 5;
-        if (box.current != null )
-            box.current.style.top = posY.current + "px";    
-    }
+   
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft") 
+        moveSnake("x",-5);
+    if (e.key === "ArrowRight")
+        moveSnake("x",+5);
+    if (e.key === "ArrowUp")
+        moveSnake("y",-5);
+    if (e.key === "ArrowDown") 
+        moveSnake("y",+5);
+  };
 
-
-    const handleKeyDown = (e:KeyboardEvent) =>
-        {
-           if (e.key == "ArrowLeft")
-                moveLeft();
-           if (e.key == "ArrowRight")
-                moveRight();
-           if (e.key == "ArrowUp")
-                moveTop();
-           if (e.key == "ArrowDown")
-                moveDown();
-        }
-        document.addEventListener("keydown",handleKeyDown);
+React.useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+}, );
     return (
         <>
+        {
+        !isStarted ? 
+         <button type="button" className="start-btn" onClick={startGame} >
+            click to play</button>
+        :
         <div id="lines">
-        <div ref={box} id="box">
+        <div ref={snakeRef}
+           style={{
+        position: "absolute",
+        left: snake.x + "px",
+        top: snake.y + "px",
+        width: "20px",
+        height: "20px",
+        backgroundColor: "green",
+    }}>
         </div>
-         <div ref={apple} id="apple">
+         <div ref={appleRef}
+         style={{
+        position: "absolute",
+        left: apple.x + "px",
+        top: apple.y + "px",
+        width: "20px",
+        height: "20px",
+        backgroundColor: "red",
+    }}>
         </div>
         </div>
+        }
         </>
     )
 }
