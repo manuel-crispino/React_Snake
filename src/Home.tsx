@@ -1,4 +1,6 @@
 import React from "react";
+import Element from "./components/Element";
+import MyFunctions from "./funcs";
 type Axis = "x" | "y";
 
 interface Position {
@@ -12,93 +14,90 @@ bottom:925,
 right:1496,
 left:15 
 }
-
+const move:number = 20;
 const Home = ()=>{
     const snakeRef = React.useRef<HTMLDivElement>(null);
     const [snake,setSnake] = React.useState<Position>({x:700, y:400});
     const [apple,setApple] = React.useState<Position>({x:0, y:0});
     const appleRef = React.useRef<HTMLDivElement>(null);
     const [isStarted,setIsStarted] = React.useState(false);
-    const randomX = Math.random() * (Limits.right - Limits.left) + Limits.left;
-    const randomY = Math.random() * (Limits.bottom - Limits.top) + Limits.top;
-
+    const [direction,setDirection]= React.useState<string | null>(null);
+    const [speedLevel,setSpeedLevel] = React.useState<number>(400);
+    const CELL_SIZE = 20;
 
     const startGame =() => {
-          const newApple = { x: randomX, y: randomY };
-    setApple(newApple);
-    setIsStarted(true);
+        setApple(getRandomPosition());
+        setDirection("right");
+        setIsStarted(true);
     }
+  
+const getRandomPosition = () => MyFunctions.getRandomPosition(Limits,CELL_SIZE);
 
- const moveSnake = (axis: Axis, delta: number) => {
- setSnake(prev => ({ ...prev, [axis]: prev[axis] + delta }));
-};
-
-    React.useEffect(()=>{
-        if (snake.y === apple.y &&  snake.x === apple.x)
-    { 
+const moveSnake = React.useCallback((axis: Axis, delta: number) => {
+    setSnake(prev => ({ ...prev, [axis]: prev[axis] + delta }));
+},[]);
+    
+React.useEffect(()=>{
+    if (snake.y === apple.y &&  snake.x === apple.x)
+    {   
+        setSpeedLevel(speedLevel - 1);
+        setApple(getRandomPosition());
         console.log("snake ate apple");
-    }},[snake.y, apple.y, snake.x, apple.x])
+    }
+},[snake.y, apple.y, snake.x, apple.x, speedLevel])
 
-   
-  const handleKeyDown = (e: KeyboardEvent) => {
+React.useEffect(()=>{
+    if(!isStarted || !direction) return ; 
+
+  const interval =  setInterval(()=>{
+        if (direction == "right") moveSnake("x",move);
+        if (direction == "left") moveSnake("x",-move);
+        if (direction == "up") moveSnake("y",-move);
+        if (direction == "down") moveSnake("y",move);
+  },speedLevel);
+  return () => clearInterval(interval);
+},[moveSnake,direction,isStarted,speedLevel])
+
+const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") 
-        moveSnake("x",-5);
+        setDirection("left");
     if (e.key === "ArrowRight")
-        moveSnake("x",+5);
+        setDirection("right");
     if (e.key === "ArrowUp")
-        moveSnake("y",-5);
+        setDirection("up");
     if (e.key === "ArrowDown") 
-        moveSnake("y",+5);
+        setDirection("down");
   };
 
 React.useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
 }, );
-    return (
-        <>
+
+return (
+    <>
         {
-        !isStarted ? 
+         !isStarted ? 
          <button type="button" className="start-btn" onClick={startGame} >
             click to play</button>
-        :
-        <div id="lines">
-        <div ref={snakeRef}
-           style={{
-        position: "absolute",
-        left: snake.x + "px",
-        top: snake.y + "px",
-        width: snake.width + "px",
-        height: "20px",
-        zIndex: 0,
-        backgroundColor: "green",
-    }}>
-        </div>
-         <div ref={appleRef}
-         style={{
-        position: "absolute",
-        left: apple.x + "px",
-        top: apple.y + "px",
-        width: "20px",
-        height: "20px",
-        zIndex: -1,
-        backgroundColor: "red",
-    }}>
-        </div>
-        <div style={{
-     position: "absolute",
-    top: Limits.top + "px",
-    left: Limits.left + "px",
-    width: Limits.right - Limits.left + "px",
-    height: Limits.bottom - Limits.top + "px",
-    border: "2px solid yellow",
-    boxSizing: "border-box"
-        }}>
-        </div>
-        </div>
+         :
+         <div id="lines">
+         <Element x={snake.x} y={snake.y} Ref={snakeRef} color="green" zIndex={1}/>
+         <Element x={apple.x} y={apple.y} Ref={appleRef} color="red" zIndex={0}/>
+         <div style={{
+            position: "absolute",
+            top: Limits.top + "px",
+            left: Limits.left + "px",
+            width: Limits.right - Limits.left + "px",
+            height: Limits.bottom - Limits.top + "px",
+            border: "2px solid yellow",
+            boxSizing: "border-box"
+         }}>
+         </div>
+         </div>
         }
-        </>
-    )
+    </>
+)
 }
 
 export {Home} ;

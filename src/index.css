@@ -67,32 +67,20 @@ button:focus-visible {
   }
 }
 
-#snake{
-  background-color: green;
+
+#lines {
   position: absolute;
-  width: 25px;
-  height: 25px;
-  top : 400px;
-  left: 700px;
-  transition: transform 0.1s linear;
+  top: 20px;   /* Limits.top */
+  left: 15px;  /* Limits.left */
+  width: 1480px;
+  height: 900px;
+  z-index: -1;
+  background-image: 
+    linear-gradient(45deg, rgba(255, 255, 255, 0.5) 25%, rgba(255, 255, 255, 0.2) 25%, rgba(255, 255, 255, 0.2) 75%, rgba(254, 254, 254, 0.5) 75%, rgba(255, 255, 255, 0.5)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.5) 25%, rgba(255, 255, 255, 0.2) 25%, rgba(255, 255, 255, 0.2) 75%, rgba(255, 255, 255, 0.5) 75%, rgba(255, 255, 255, 0.5));
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
 }
-
-#apple{
-  background-color: red;
-  position: absolute;
-  width: 25px;
-  height: 25px;
-  top : 400px;
-  left: 900px;
-}
-
-#lines{
-margin: 1%;
-width: 1480px;
-height: 900px;
-border: 1px,solid, white;
-}
-
 .start-btn{
   position: absolute;
   top : 400px;
