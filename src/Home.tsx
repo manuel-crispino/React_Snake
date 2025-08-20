@@ -1,98 +1,115 @@
-import React from "react";
-import Element from "./components/Element";
+import React, { useCallback } from "react";
+import GridCss from "./components/Grid";
+import { CELL_SIZE, COLS, ROWS } from "./const";
 import MyFunctions from "./funcs";
-type Axis = "x" | "y";
 
 interface Position {
-    x : number;
-    y : number;
+  x: number;
+  y: number;
 }
 
+type Direction = "left" | "right" | "up" | "down";
+
 const Limits = { 
-  top: 20,    // multiplo di 20 ✅
-  bottom: 920, // 900px di altezza (multiplo di 20)
-  right: 1500, // multiplo di 20 ✅
-  left: 20     // multiplo di 20 ✅
+  top: 0,
+  bottom: ROWS * CELL_SIZE, 
+  left: 0,
+  right: COLS * CELL_SIZE 
 };
 
-const Home = () => {
-    const snakeRef = React.useRef < HTMLDivElement > (null);
-    const [snake,
-        setSnake] = React.useState < Position > ({x: 700, y: 400});
-    const [apple,
-        setApple] = React.useState < Position > ({x: 0, y: 0});
-    const appleRef = React.useRef < HTMLDivElement > (null);
-    const [isStarted,
-        setIsStarted] = React.useState(false);
-    const [direction,
-        setDirection] = React.useState < string | null > (null);
-    const [speedLevel,
-        setSpeedLevel] = React.useState < number > (300);
-    const CELL_SIZE = 20;
+export const Home = () => {
+  const [snake, setSnake] = React.useState<Position[]>([{ x: 6 * CELL_SIZE, y: 6 * CELL_SIZE }]);
+  const [apple, setApple] = React.useState<Position>(getRandomPosition());
+  const [direction, setDirection] = React.useState<Direction>("right");
+  const speedLevel = 200;
+  const [isStarted, setIsStarted] = React.useState(false);
 
-    const startGame = () => {
-        setApple(getRandomPosition());
-        setDirection("right");
-        setIsStarted(true);
-    }
+  function getRandomPosition() {
+    return MyFunctions.getRandomPosition(Limits, CELL_SIZE);
+  }
 
-    const getRandomPosition = () => MyFunctions.getRandomPosition(Limits, CELL_SIZE);
+  const startGame = useCallback(() => {
+    setSnake([{ x: 6 * CELL_SIZE, y: 6 * CELL_SIZE }]);
+    setApple(getRandomPosition());
+    setDirection("right");
+    setIsStarted(true);
+  },[]);
 
-    const moveSnake = React.useCallback((axis : Axis, delta : number) => {
-        setSnake(prev => ({
-            ...prev,
-            [axis]: prev[axis] + delta
-        }));
-    }, []);
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft" && direction !== "right") setDirection("left");
+    if (e.key === "ArrowRight" && direction !== "left") setDirection("right");
+    if (e.key === "ArrowUp" && direction !== "down") setDirection("up");
+    if (e.key === "ArrowDown" && direction !== "up") setDirection("down");
+  },[direction]);
 
-    React.useEffect(() => {
-        if (snake.y === apple.y && snake.x === apple.x) {
-            setSpeedLevel(speedLevel - 1);
-            setApple(getRandomPosition());
-            console.log("snake ate apple");
+  React.useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [direction,handleKeyDown]);
+
+  React.useEffect(() => {
+    if (!isStarted) return;
+
+    const interval = setInterval(() => {
+      setSnake(prev => {
+        const newHead = { ...prev[0] };
+
+        switch (direction) {
+          case "right":
+            newHead.x += CELL_SIZE;
+            break;
+          case "left":
+            newHead.x -= CELL_SIZE;
+            break;
+          case "up":
+            newHead.y -= CELL_SIZE;
+            break;
+          case "down":
+            newHead.y += CELL_SIZE;
+            break;
         }
-    }, [snake.y, apple.y, snake.x, apple.x, speedLevel])
 
-    React.useEffect(() => {
-        if (!isStarted || !direction) 
-            return;
-        
-        const interval = setInterval(() => {
-            if (direction == "right") 
-                moveSnake("x", CELL_SIZE);
-            if (direction == "left") 
-                moveSnake("x", -CELL_SIZE);
-            if (direction == "up") 
-                moveSnake("y", -CELL_SIZE);
-            if (direction == "down") 
-                moveSnake("y", CELL_SIZE);
-            }
-        , speedLevel);
-        return () => clearInterval(interval);
-    }, [moveSnake, direction, isStarted, speedLevel])
+        // collisione con limiti
+        if (
+          newHead.x < Limits.left ||
+          newHead.x >= Limits.right ||
+          newHead.y < Limits.top ||
+          newHead.y >= Limits.bottom
+        ) {
+          startGame();
+          return prev;
+        }
 
-    const handleKeyDown = (e : KeyboardEvent) => {
-        if (e.key === "ArrowLeft") 
-            setDirection("left");
-        if (e.key === "ArrowRight") 
-            setDirection("right");
-        if (e.key === "ArrowUp") 
-            setDirection("up");
-        if (e.key === "ArrowDown") 
-            setDirection("down");
-        };
-    
-    React.useEffect(() => {
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    },);
+        const newSnake = [newHead, ...prev];
 
-    return ( <> {
-        !isStarted
-            ? <button type="button" className="start-btn" onClick={startGame}>
-                    click to play</button>
-            :   <>
-                 <div id="lines">
+        // collisione con mela
+        if (newHead.x === apple.x && newHead.y === apple.y) {
+          setApple(getRandomPosition());
+        } else {
+          newSnake.pop(); // rimuovo coda se non mangia
+        }
+
+        return newSnake;
+      });
+    }, speedLevel);
+
+    return () => clearInterval(interval);
+  }, [startGame,isStarted, direction, apple, speedLevel]);
+
+  return (
+    <div>
+      {!isStarted ? (
+        <button onClick={startGame}>Start Game</button>
+      ) : (
+        <GridCss snake={snake} apple={apple} />
+      )}
+    </div>
+  );
+};
+
+
+
+ {/*  <div id="lines">
                     <Element x={snake.x} y={snake.y} Ref={snakeRef} color="green" zIndex={1}/>
                     <Element x={apple.x} y={apple.y} Ref={appleRef} color="red" zIndex={0}/>
                  </div>
@@ -105,10 +122,4 @@ const Home = () => {
                         height: Limits.bottom - Limits.top + "px",
                         border: "2px solid yellow",
                         boxSizing: "border-box"
-                    }}></div>
-                </>
-    } </>
-)
-}
-
-export {Home} ;
+                    }}></div> */}
