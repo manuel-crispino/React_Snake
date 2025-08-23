@@ -1,9 +1,9 @@
-import {Home} from './Home'
+import Game from './Game'
 function App() {
 
   return (
     <>
-    <Home/>
+    <Game/>
     </>
   )
 }

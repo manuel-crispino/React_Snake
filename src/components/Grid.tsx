@@ -1,44 +1,55 @@
-import { COLS, ROWS, CELL_SIZE } from "../const";
+import React, { useRef, useEffect } from "react";
 
-interface Position {
-  x: number;
-  y: number;
-}
+const Grid: React.FC = () => {
+  const gridRef = useRef<HTMLCanvasElement | null>(null);
 
-interface GridProps {
-  snake: Position[];
-  apple: Position;
-}
+  useEffect(() => {
+    const canvas = gridRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-export default function GridCss({ snake, apple }: GridProps) {
-  const cells = Array.from({ length: ROWS * COLS }, (_, i) => {
-    const row = Math.floor(i / COLS);
-    const col = i % COLS;
-    const isDark = (row + col) % 2 === 0;
+    const cellSize = 80;          // dimensione di ogni cella
+    const rows = canvas.height / cellSize;
+    const cols = canvas.width / cellSize;
 
-    const x = col * CELL_SIZE;
-    const y = row * CELL_SIZE;
+    // disegno la scacchiera
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // alterniamo i colori per effetto scacchiera
+        if ((r + c) % 2 === 0) {
+          ctx.fillStyle = "#222"; // colore scuro
+        } else {
+          ctx.fillStyle = "#333"; // colore chiaro
+        }
+        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      }
+    }
 
-    let backgroundColor = isDark ? "#88888861" : "#ffffff58";
+    // disegno linee griglia sopra la scacchiera
+    ctx.strokeStyle = "#555"; // colore linee
+    ctx.lineWidth = 1;
 
-    // disegno snake
-    if (snake.some(seg => seg.x === x && seg.y === y)) backgroundColor = "green";
-    // disegno mela
-    if (apple.x === x && apple.y === y) backgroundColor = "red";
+    // linee verticali
+    for (let c = 0; c <= cols; c++) {
+      const x = c * cellSize;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
 
-    return <div key={i} style={{ width: CELL_SIZE, height: CELL_SIZE, backgroundColor }} />;
-  });
+    // linee orizzontali
+    for (let r = 0; r <= rows; r++) {
+      const y = r * cellSize;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+  }, []);
 
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${COLS}, ${CELL_SIZE}px)`,
-        gridTemplateRows: `repeat(${ROWS}, ${CELL_SIZE}px)`,
-        border: "2px solid yellow",
-      }}
-    >
-      {cells}
-    </div>
-  );
-}
+  return <canvas ref={gridRef} width={1200} height={800}></canvas>;
+};
+
+export default Grid;
