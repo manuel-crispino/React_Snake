@@ -18,9 +18,9 @@ const Grid: React.FC = () => {
       for (let c = 0; c < cols; c++) {
         // alterniamo i colori per effetto scacchiera
         if ((r + c) % 2 === 0) {
-          ctx.fillStyle = "#222"; // colore scuro
+          ctx.fillStyle = "#424141ff"; // colore scuro
         } else {
-          ctx.fillStyle = "#333"; // colore chiaro
+          ctx.fillStyle = "#767676ff"; // colore chiaro
         }
         ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
       }
